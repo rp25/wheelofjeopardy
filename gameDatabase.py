@@ -29,7 +29,7 @@ class database:
         return self.QCA
     #Returns a dictionary of current players and their current score
     def getPlayers(self):
-        return self.name
+        return self.players
     #Returns a dictionary of highest score for each player from all games played
     def getScores(self):
         return self.scores
