@@ -40,8 +40,8 @@ class database:
     def setQCA(self, cat, QAList):
         self.QCA[cat] = QAList
     #Allows a function or object to change the players and their score
-    def setPlayers(self, players):
-       self.players = players
+    def setPlayers(self, playersList):
+       self.players = playersList
     #Allows a function or object to change the players and thier high score
     def setScores(self, scores):
         self.scores = scores
