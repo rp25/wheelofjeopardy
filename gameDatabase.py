@@ -16,10 +16,10 @@ class database:
     #creates a database object with a given name
     def __init__(self, name):
         self.name = name    
-        self.QCA = {'sky' : [('blue', 'What is the colo of the sky?', False),(),()], 'category' : [(),(),()]}
+        self.QCA = {}
         #Limit to 3 players
-        self.players = None #only store current game players and score {'player': intScore}
-        self.scores = None #store higest scores for each player from all games  {'player': intScore}
+        self.players = {} #only store current game players and score {'player': intScore}
+        self.scores = {} #store higest scores for each player from all games  {'player': intScore}
     
     # Returns the name of the database
     def getName(self):
