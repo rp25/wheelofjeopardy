@@ -51,6 +51,9 @@ class database:
     #Returns all available Categories    
     def getAllCategories(self):
         return self.QCA.keys()
+    #Returns all current players
+    def getAllCurrentPlayers(self):
+        return self.players.keys()
     #loads existing database from previous game or a saved game    
     def loadDB(self, path):
         db = pickle.load(open(path, "rb"))
