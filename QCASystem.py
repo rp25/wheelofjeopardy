@@ -13,6 +13,7 @@ class QCAL():
         self.answer = a
         self.level = l
         self.used = False
+        self.index = None
 
 class QCASystem:
     
@@ -26,14 +27,31 @@ class QCASystem:
         
     def addCategory(self, cat):
          if(cat not in self.db.getAllCategories()):
-             self.db[cat] = []
+             self.db.getQCA()[cat] = []
          else:
              print('Category already exist')
              
     def addQA(self, cat, QA): #('Q', 'A', False)
          if(cat in self.db.getAllCategories()):
              #self.db[cat].append(QA)
-             self.db[cat] = self.db[cat].append(QA)
+             temp = self.db.getQCA()[cat] 
+             temp.append(QA)
+             self.db.setQCA(cat, temp)
+
          else:
              print('Category does not exist')
+              
+    def addNewPlayer(self, newPlayer): #('Q', 'A', False)
+         if(newPlayer not in self.db.getAllCurrentPlayers()):
+             temp = self.db.getPlayers() 
+             temp[newPlayer] = 0
+             self.db.setPlayers(temp)
+         else:
+             print('Player already exist')
              
+             
+a = QCASystem('sys')
+a.loadDefaultQCA()
+a.addCategory('V')
+a.addQA('V', ('Q?', 'A', False))
+print(a.db.getQCA())
