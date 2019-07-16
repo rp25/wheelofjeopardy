@@ -48,6 +48,9 @@ class database:
     #Function to add new   questions, answers, and categories  
     def addQCA(self, QCA):
         pass
+    #Returns all available Categories    
+    def getAllCategories(self):
+        return self.QCA.keys()
     #loads existing database from previous game or a saved game    
     def loadDB(self, path):
         db = pickle.load(open(path, "rb"))
