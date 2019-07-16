@@ -37,8 +37,8 @@ class database:
     def setName(self, name):
         self.name = name
     #Allows a function or obj to change the suggested questions, answers, and categories dictionary
-    def setQCA(self, QCA):
-        self.QCA = QCA
+    def setQCA(self, cat, QAList):
+        self.QCA[cat] = QAList
     #Allows a function or object to change the players and their score
     def setPlayers(self, players):
        self.players = players
