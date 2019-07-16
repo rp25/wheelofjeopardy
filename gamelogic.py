@@ -11,6 +11,10 @@ class gamelogic:
         self.sectors = ['category 1', 'category 2', 'category 3', 'category 4', 'category 5', 'category 6', 
         'lose', 'free', 'bankrupt', 'pchoice', 'ochoice', 'double']
         
+        self.round = 1
+        self.spinCount = 0
+        self.playerQ = [] 
+        
     # Return a randomized sector when the player spins the wheel 
     def getOneSector(self):
         random_pick = random.choice(self.sectors)
