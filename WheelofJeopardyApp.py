@@ -1,5 +1,7 @@
-import kivy
+import QCASystem.py
+import gamelogic.py
 
+import kivy
 from kivy.app import App
 from kivy.uix.widget import Widget
 

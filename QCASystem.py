@@ -17,3 +17,8 @@ class QCASystem:
     def function():
         pass
 
+    def loadQuestionsFromDB():
+        '''Pull current QCA from DB'''
+        pass
+
+
