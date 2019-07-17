@@ -1,5 +1,6 @@
 <WheelofJeopardy>:
     mainBox: mainBox
+    question: question
 
     FloatLayout:
         id: mainBox
@@ -8,10 +9,9 @@
 
         GridLayout:
             orientation: 'horizontal'
-            cols:2
+            cols:3
             pos_hint: {'top': 1}
-            size_hint:  0.5, 0.1
-
+            size_hint:  1, 0.1
 
             Button:
                 text: 'SPIN!!'
@@ -25,5 +25,9 @@
                 size_hint: 0.3, 1.0
                 outline_color: 1, 0, 0
 
-
-    
+            Label:
+                id: question
+                text: '??'
+                background_color: 1, 0, 0, 0.9
+                size_hint: 0.8, 1.0
+                
