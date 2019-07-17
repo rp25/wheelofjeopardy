@@ -43,6 +43,8 @@ class QuestionMatrix(GridLayout):
         # TODO: The grid fills in left to right
         # so the categories correspond to rows right now...
         # fix this
+
+        # Fill top row with categories
         for category, questions in qcaDict.items():
             button = Button()
             button.text = str(category)
@@ -50,19 +52,21 @@ class QuestionMatrix(GridLayout):
             self.categoryButtons.append(button)
             self.add_widget(button)
         
-        for questions in qcaDict.values():
-            for qa in questions:
-                print(qa[1])
+        # Fill remaining rows with question data
+        for index in range(self.cols - 1):
+            print(f"[i] questions: {questions[index]} ")
+            for questions in qcaDict.values():
                 questionButton = QuestionButton(
-                    str(qa[0]),
-                    str(qa[1]),
-                    '100',
+                    str(questions[index][0]),
+                    str(questions[index][1]),
+                    f'{100*(index+1)}',
                     str(category),
                     qq
                 )
-                print(f"[i] {questionButton.text}")
                 self.questionButtons.append(questionButton)
                 self.add_widget(questionButton)
+                
+                
 
 
 class WheelofJeopardy(Widget):
