@@ -73,9 +73,11 @@ class WheelofJeopardy(Widget):
         super(WheelofJeopardy, self).__init__(**kwargs)
         
         # Load quesitons from QCASystem
-        qcaSystem = QCASystem.QCASystem('default')
-        qcaSystem.loadDefaultQCA()
-        qca = qcaSystem.db.getQCA()
+        self.qcaSystem = QCASystem.QCASystem('default')
+        self.qcaSystem.loadDefaultQCA()
+        qca = self.qcaSystem.db.getQCA()
+        #gets current round cats
+        cats = self.qcaSystem.db.getAllCategories()
   
         # Build matrix of questions
         qtest = QuestionMatrix(qca, self.question)
@@ -84,7 +86,8 @@ class WheelofJeopardy(Widget):
         self.mainBox.add_widget( qtest)
 
     def changeText(self, label):
-        label.text = gamelogic.getOneSector()
+        label.text = gamelogic.getOneSector(
+            self.qcaSystem.db.getAllCategories())
         
 class WheelofJeopardyApp(App):
     def build(self):
