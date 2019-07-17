@@ -5,7 +5,7 @@ import random
 
 # gamelogic object will hold 12 predefined sectors and handle all game related logics associated with each sector. 
 # For the mininum system - read the category data from the QCAsystem (6 sectors)
-defaultSectors = ['lose', 'free', 'bankrupt', 'pchoice', 'ochoice', 'double']
+defaultSectors = ['Lose Turn', 'Free Turn', 'Bankrupt', 'Player\'s Choice', 'Opponent\'s Choice', 'Double Score']
 
 round = 1
 spinCount = 0
@@ -14,7 +14,8 @@ playerQ = []
 # Return a randomized sector when the player spins the wheel 
 
 def getOneSector(catSectors):
-    defaultSectors.extend(catSectors)
+    print(type(catSectors))
+    defaultSectors.extend(list(catSectors))
     random_pick = random.choice(defaultSectors)
     
     # For the skeletal system - return the random_pick from the list

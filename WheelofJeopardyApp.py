@@ -80,8 +80,6 @@ class WheelofJeopardy(Widget):
         self.qcaSystem = QCASystem.QCASystem('default')
         self.qcaSystem.loadDefaultQCA()
         qca = self.qcaSystem.db.getQCA()
-        #gets current round cats
-        cats = self.qcaSystem.db.getAllCategories()
   
         # Build matrix of questions
         qtest = QuestionMatrix(qca, self.question)
