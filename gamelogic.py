@@ -13,7 +13,6 @@ spinCount = 0
 playerQ = [] 
     
 # Return a randomized sector when the player spins the wheel 
-
 def getOneSector():
     random_pick = random.choice(sectors)
     
