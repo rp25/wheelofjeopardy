@@ -1,6 +1,7 @@
 <WheelofJeopardy>:
     mainBox: mainBox
     question: question
+    answer: answer
 
     FloatLayout:
         id: mainBox
@@ -11,7 +12,7 @@
             orientation: 'vertical'
             cols:1
             pos_hint: {'top': 1, 'right': 1.0}
-            size_hint:  1, 0.1
+            size_hint:  1, 0.4
 
             Button:
                 text: 'SPIN!!'
@@ -30,4 +31,18 @@
                 text: '??'
                 background_color: 1, 0, 0, 0.9
                 size_hint: 0.8, 1.0
-                
+            
+            Button:
+                id: showAnswer
+                text: "Show Answer"
+                size_hint: 0.7, 1.0
+                on_press: root.showAnswer(answer)
+
+            TextInput:
+                id: answer
+                text: '!!'
+                size_hint: 0.8, 1.0
+                password: True
+                halign: 'center'
+                background_color: 0, 0, 0, 1
+                foreground_color: 1, 1, 1, 1

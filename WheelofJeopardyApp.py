@@ -13,9 +13,10 @@ class QuestionButton(Button):
     '''TODO: just make this hold the QCA object
         to make everything much cleaner and less redundant
     '''
-    def __init__(self, q, a, pts, cat, qlabel, **kwargs):
+    def __init__(self, q, a, pts, cat, qlabel, alabel, **kwargs):
         super(QuestionButton, self).__init__(**kwargs)
         self.qq = qlabel
+        self.aa = alabel
         self.question = q
         self.answer = a
         self.points = pts
@@ -26,10 +27,11 @@ class QuestionButton(Button):
     # For now just display quesiton if button is clicked
     def on_press(self):
         self.qq.text = self.answer
+        self.aa.text = self.question
 
 class QuestionMatrix(GridLayout):
     # TODO: Don't pass around the 'qq' it's ugly
-    def __init__(self, qcaDict, qlabel, **kwargs):
+    def __init__(self, qcaDict, qlabel, alabel, **kwargs):
         super(QuestionMatrix, self).__init__(**kwargs)
         self.cols = 6
         self.rows = 6
@@ -37,12 +39,9 @@ class QuestionMatrix(GridLayout):
 
         self.questionButtons = []
         self.categoryButtons = []
-        self.buildMatrix(qcaDict, qlabel)
+        self.buildMatrix(qcaDict, qlabel, alabel)
 
-    def buildMatrix(self, qcaDict, qq):
-        # TODO: The grid fills in left to right
-        # so the categories correspond to rows right now...
-        # fix this
+    def buildMatrix(self, qcaDict, qq, aa):
 
         # Fill top row with categories
         for category, questions in qcaDict.items():
@@ -61,7 +60,7 @@ class QuestionMatrix(GridLayout):
                     str(questions[index][1]),
                     f'{100*(index+1)}',
                     str(category),
-                    qq
+                    qq, aa
                 )
                 self.questionButtons.append(questionButton)
                 self.add_widget(questionButton)
@@ -72,6 +71,7 @@ class QuestionMatrix(GridLayout):
 class WheelofJeopardy(Widget):
     mainBox = ObjectProperty()
     question = ObjectProperty()
+    answer = ObjectProperty()
 
     def __init__(self, **kwargs):
         super(WheelofJeopardy, self).__init__(**kwargs)
@@ -82,7 +82,7 @@ class WheelofJeopardy(Widget):
         qca = self.qcaSystem.db.getQCA()
   
         # Build matrix of questions
-        qtest = QuestionMatrix(qca, self.question)
+        qtest = QuestionMatrix(qca, self.question, self.answer)
         qtest.size_hint = (0.9, 0.5)
         qtest.pos = self.mainBox.center
         self.mainBox.add_widget( qtest)
@@ -90,7 +90,13 @@ class WheelofJeopardy(Widget):
     def changeText(self, label):
         label.text = gamelogic.getOneSector(
             self.qcaSystem.db.getAllCategories())
-        
+
+    def showAnswer(self, label):
+        if label.password:
+            label.password = False
+        else:
+            label.password = True
+
 class WheelofJeopardyApp(App):
     def build(self):
         return WheelofJeopardy()
