@@ -25,7 +25,7 @@ class QuestionButton(Button):
 
     # For now just display quesiton if button is clicked
     def on_press(self):
-        self.qq.text = self.question
+        self.qq.text = self.answer
 
 class QuestionMatrix(GridLayout):
     # TODO: Don't pass around the 'qq' it's ugly
