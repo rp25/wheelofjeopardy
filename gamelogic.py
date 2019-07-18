@@ -14,7 +14,7 @@ playerQ = []
 # Return a randomized sector when the player spins the wheel 
 
 def getOneSector(catSectors):
-    print(type(catSectors))
+    #print(type(catSectors))
     defaultSectors.extend(list(catSectors))
     random_pick = random.choice(defaultSectors)
     
