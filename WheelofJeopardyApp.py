@@ -237,7 +237,7 @@ class QuestionScreen(Screen):
 
     def build_question_grid(self):
         self.grid = GridLayout(
-            size_hint = (0.8, 0.8),
+            size_hint = (0.85, 0.85),
             pos_hint = {'center_x': 0.5, 'center_y': 0.55 },
             cols = _NUM_CATS
         )
@@ -245,14 +245,16 @@ class QuestionScreen(Screen):
         for cat in range(_NUM_CATS):
             cat = Button()
             cat.text = f'A category {count}'
-            cat.bold = True
             cat.background_color = _COLOR_1
+            cat.font_size = 30
+            cat.text_size = self.grid.size
+
 
             self.grid.add_widget(cat)
             for question in range(_QUES_PER_CAT):
                 qbtn = QuestionAnswerButton()
                 qbtn.point_value = (question + 1) * 100
-                qbtn.text = str(qbtn.point_value) + str(count)
+                qbtn.text = str(qbtn.point_value)
                 qbtn.bind(on_press=self.show_question_popup)
                 self.grid.add_widget(qbtn)
                 count += 1
