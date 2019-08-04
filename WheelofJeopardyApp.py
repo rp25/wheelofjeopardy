@@ -3,103 +3,373 @@ import gamelogic
 
 import kivy
 from kivy.app import App
+from kivy.graphics import Color, Rectangle
 from kivy.uix.widget import Widget
 from kivy.uix.button import Button
+from kivy.uix.label import Label
+from kivy.uix.popup import Popup
 from kivy.uix.gridlayout import GridLayout 
+from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.dropdown import DropDown
+from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.properties import ObjectProperty, StringProperty
 
-class QuestionButton(Button):
-    '''TODO: just make this hold the QCA object
-        to make everything much cleaner and less redundant
-    '''
-    def __init__(self, q, a, pts, cat, qlabel, alabel, **kwargs):
-        super(QuestionButton, self).__init__(**kwargs)
-        self.qq = qlabel
-        self.aa = alabel
-        self.question = q
-        self.answer = a
-        self.points = pts
-        self.text = self.points
-        self.category = cat
-        self.background_color = (1, 1, 1, 0.9)
 
-    # For now just display quesiton if button is clicked
-    def on_press(self):
-        self.qq.text = self.answer
-        self.aa.text = self.question
+# Main colors used in color theme
+_COLOR_1 = (199/255, 0, 57/255, 1)
+_COLOR_2 = (199/255, 0, 57/255, 1)
 
-class QuestionMatrix(GridLayout):
-    # TODO: Don't pass around the 'qq' it's ugly
-    def __init__(self, qcaDict, qlabel, alabel, **kwargs):
-        super(QuestionMatrix, self).__init__(**kwargs)
-        self.cols = 6
-        self.rows = 6
-        self.orientation = 'horizontal'
+_NUM_CATS = 6
+_QUES_PER_CAT = 5
 
-        self.questionButtons = []
-        self.categoryButtons = []
-        self.buildMatrix(qcaDict, qlabel, alabel)
+class HomeScreen(Screen):
+    def __init__(self, **kwargs):
+        super(HomeScreen, self).__init__(**kwargs)
 
-    def buildMatrix(self, qcaDict, qq, aa):
+        self.name = 'home'
 
-        # Fill top row with categories
-        for category, questions in qcaDict.items():
-            button = Button()
-            button.text = str(category)
-            button.background_color = (1, 0, 0, 1)
-            self.categoryButtons.append(button)
-            self.add_widget(button)
+        self.title = Label(text='Wheel of Jeopardy!!')
+        self.title.pos_hint = {'center_x': 0.5, 'top': 1}
+        self.title.size_hint = (1, .20)
+        self.title.color = (0, 0, 0, 1)
+        self.title.bold = True 
+        self.title.font_size = 90
+
+        self.play_button = Button()
+        self.play_button.text = "PLAY"
+        self.play_button.pos_hint = {'center_x': 0.5, 'top': 0.75}
+        self.play_button.size_hint = (0.4, 0.2)
+
+        self.edit_button = Button()
+        self.edit_button.text = "Edit Questions"
+        self.edit_button.pos_hint = {'center_x': 0.5, 'top': 0.35}
+        self.edit_button.size_hint = (0.4, 0.2)
+
+        self.add_widget(self.title)
+        self.add_widget(self.play_button)
+        self.add_widget(self.edit_button)
+
+class GameOptionsScreen(Screen):
+    def __init__(self, **kwargs):
+        super(GameOptionsScreen, self).__init__(**kwargs)
+        self.name = 'options'
         
-        # Fill remaining rows with question data
-        for index in range(self.cols - 1):
-            print(f"[i] questions: {questions[index]} ")
-            for questions in qcaDict.values():
-                questionButton = QuestionButton(
-                    str(questions[index][0]),
-                    str(questions[index][1]),
-                    f'{100*(index+1)}',
-                    str(category),
-                    qq, aa
-                )
-                self.questionButtons.append(questionButton)
-                self.add_widget(questionButton)
-                
-                
+        self.home_button = Button(text='home')
+        self.home_button.size_hint = (1/8, 1/12)
+        self.home_button.pos_hint = {'x':0.02, 'y': 0.02}
+        self.home_button.background_color = _COLOR_1
+
+        self.start_button = Button(
+            text = 'start',
+            size_hint = (1/8, 1/12),
+            pos_hint = {'right': 0.98, 'y': 0.02},
+            background_color = _COLOR_1
+        )
+        
+        self.build_num_teams_drop_down()
+        self.build_question_selection_drop_down()
+        self.add_widget(self.home_button)
+        self.add_widget(self.start_button)
+        
+
+    
+
+    def build_num_teams_drop_down(self):
+        MAX_TEAMS = 3
+        self.main_button = Button()
+        self.main_button.text = "Select Number of Teams"
+        self.main_button.size_hint = (0.4, 0.15)
+        self.main_button.pos_hint = {'center_x': 0.5, 'top': 0.8}
+        self.main_button.font_size = 30
+        self.main_button.background_color = _COLOR_1
+
+        self.drop_down = DropDown()  
+        for i in range(MAX_TEAMS):
+            btn = Button(
+                text = f"{i + 1}",
+                size_hint_y = None,
+                height = 30
+            )
+            btn.bind(on_press=lambda btn: self.drop_down.select(btn.text))
+
+            self.drop_down.add_widget(btn)
+
+        self.main_button.bind(on_release=self.drop_down.open)
+        self.drop_down.bind(
+            on_select=lambda instance, x: setattr(self.main_button, 'text', x)
+        )
+        self.add_widget(self.main_button)
+
+    def build_question_selection_drop_down(self):
+        '''
+        need to hook this up to QCA system to query
+        all the questions that are available
+        '''
+
+        # Temp list of random names to simulate QCA querry result
+        set_list = ['set1', 'set2', 'set3', 'set4', 'set5', 'set6']
+        self.question_button = Button()
+        self.question_button.text = "Select Question Set"
+        self.question_button.size_hint = (0.4, 0.15)
+        self.question_button.pos_hint = {'center_x': 0.5, 'top': 0.45}
+        self.question_button.font_size = 30
+        self.question_button.background_color = _COLOR_1
+
+        self.question_drop_down = DropDown()  
+        for name in set_list:
+            btn = Button(
+                text = name,
+                size_hint_y = None,
+                height = 30
+            )
+            btn.bind(
+                on_press=lambda btn: self.question_drop_down.select(btn.text)
+            )
+            self.question_drop_down.add_widget(btn)
+
+        self.question_button.bind(on_release=self.question_drop_down.open)
+        self.question_drop_down.bind(
+            on_select=lambda instance, x: setattr(self.question_button, 'text', x)
+        )
+        self.add_widget(self.question_button)
 
 
-class WheelofJeopardy(Widget):
-    mainBox = ObjectProperty()
-    question = ObjectProperty()
-    answer = ObjectProperty()
 
+class GamePlayScreen(Screen):
+    def __init__(self, **kwargs):
+        super(GamePlayScreen, self).__init__(**kwargs)
+
+        self.temp_button = Button(
+            text = 'go to question'
+        )
+        self.add_widget(self.temp_button)
+
+class QuestionAnswerButton(Button):
+    def __init__(self, **kwargs):
+        super(QuestionAnswerButton, self).__init__(**kwargs)
+        self.question = 'not assigned'
+        self.answer = 'not assigned'
+        self.point_value = ''
+        self.text = str(self.point_value)
+
+
+class QuestionScreen(Screen):
+    def __init__(self, **kwargs):
+        super(QuestionScreen, self).__init__(**kwargs)
+        self.name = 'questions'
+        self.current_question_button = QuestionAnswerButton()
+
+        self.build_necessary_widgets()
+        self.build_question_popup()
+        self.build_answer_popup()
+        self.build_question_grid()
+
+        self.add_widget(self.grid)
+        self.add_widget(self.continue_button)
+
+    def build_necessary_widgets(self):
+        self.continue_button = Button(
+            text = 'continue',
+            size_hint = (1/8, 1/12),
+            pos_hint = {'x': 0.02, 'y': 0.02},
+            background_color = _COLOR_1
+        )
+        
+
+    def show_question_popup(self, instance):
+        self.current_question_button = instance
+        self.question_label.text = self.current_question_button.question
+        self.question_popup.open()
+
+    def build_question_popup(self):
+        self.question_popup = Popup(
+            title = "Question",
+            size_hint = (0.5, 0.5),
+            pos_hint = {'center_x': 0.5, 'bottom': 1}
+        )
+        self.question_float_layout = FloatLayout()
+        self.question_label = Label(
+            text = '',
+            size_hint = (1.0, 0.7),
+            pos_hint = {'center_x': 0.5, 'center_y': 0.5},
+            font_size = 40,
+            bold = True
+        )
+        self.show_answer_button = Button(
+            text = 'show answer',
+            size_hint = (1/3, 1/6),
+            pos_hint = {'center_x': 0.5, 'y': 0.01},
+            on_press = self.show_answer_popup,
+            background_color = _COLOR_1
+        )
+
+        self.question_float_layout.add_widget(self.question_label)
+        self.question_float_layout.add_widget(self.show_answer_button)
+        self.question_popup.content = self.question_float_layout
+
+    def build_answer_popup(self):
+        self.answer_popup = Popup(
+            title = "Answer",
+            size_hint = (0.5, 0.5),
+            pos_hint = {'center_x': 0.5, 'bottom': 1}
+        )
+        self.answer_float_layout = FloatLayout()
+        self.answer_label = Label(
+            text= self.current_question_button.answer,
+            size_hint = (1.0, 0.7),
+            pos_hint = {'center_x': 0.5, 'center_y': 0.5},
+            font_size = 40,
+            bold = True
+        )
+        self.answer_float_layout.add_widget(self.answer_label)
+        self.answer_popup.content = self.answer_float_layout
+
+
+    def show_answer_popup(self, instance):
+        self.question_popup.dismiss()
+   
+        self.answer_popup.open()
+
+    def build_question_grid(self):
+        self.grid = GridLayout(
+            size_hint = (0.8, 0.8),
+            pos_hint = {'center_x': 0.5, 'center_y': 0.55 },
+            cols = _NUM_CATS
+        )
+        for cat in range(_NUM_CATS):
+            cat = Button()
+            cat.text = 'A category'
+            cat.bold = True
+            cat.background_color = _COLOR_1
+            cat.disable = True
+
+            self.grid.add_widget(cat)
+            for question in range(_QUES_PER_CAT):
+                qbtn = QuestionAnswerButton()
+                qbtn.point_value = (question + 1) * 100
+                qbtn.text = str(qbtn.point_value)
+                qbtn.bind(on_press=self.show_question_popup)
+                self.grid.add_widget(qbtn)
+        
+
+    
+
+class EditQuestionScreen(Screen):
+    def __init__(self, **kwargs):
+        super(EditQuestionScreen, self).__init__(**kwargs)
+        self.name = 'edit'
+
+        self.grid = GridLayout()
+        self.grid.orientation = 'horizontal'
+        self.grid.size_hint = (0.8, 0.8)
+        self.grid.pos_hint = {'center_x': 0.5, 'center_y': 0.55 }
+        self.grid.cols = _NUM_CATS
+        self.build_question_grid()
+
+        self.home_button = Button(
+            text = 'home',
+            size_hint = (1/8, 1/12),
+            pos_hint = {'x': 0.02, 'y': 0.02},
+            background_color = _COLOR_1
+        )
+
+        self.save_button = Button(
+            text = 'save',
+            size_hint = (1/8, 1/12),
+            pos_hint = {'right': 0.98, 'y': 0.02},
+            background_color = _COLOR_1
+        )
+
+        self.add_widget(self.grid)
+        self.add_widget(self.home_button)
+        self.add_widget(self.save_button)
+
+    def question_entry_popup(self):
+        pass
+    
+    def answer_entry_popup(self):
+        pass
+
+    def build_question_grid(self):
+        for cat in range(_NUM_CATS):
+            cat = Button()
+            cat.text = 'A category'
+            cat.bold = True
+            cat.background_color = _COLOR_1
+            cat.disable = True
+
+            self.grid.add_widget(cat)
+            for question in range(_QUES_PER_CAT):
+                qbtn = QuestionAnswerButton()
+                qbtn.point_value = (question + 1) * 100
+                qbtn.text = str(qbtn.point_value)
+                self.grid.add_widget(qbtn)
+
+
+
+## ROOT WIDGET
+class WheelofJeopardy(ScreenManager):
     def __init__(self, **kwargs):
         super(WheelofJeopardy, self).__init__(**kwargs)
+
+        self.home = HomeScreen()
+        self.game_options = GameOptionsScreen()
+        self.game_play = GamePlayScreen()
+        self.edit = EditQuestionScreen()
+        self.questions = QuestionScreen()
+
+        self.add_widget(self.home)
+        self.add_widget(self.game_options)
+        self.add_widget(self.questions)
+        self.add_widget(self.game_play)
+        self.add_widget(self.edit)
+
+        # Setup buttons from screen transitions
+        self.home.play_button.bind(on_press=self.go_to_options)
+        self.home.edit_button.bind(on_press=self.go_to_edit)
+        self.edit.home_button.bind(on_press=self.go_home)
+        self.game_options.home_button.bind(on_press=self.go_home)
+        self.game_options.start_button.bind(on_press=self.go_to_game_play)
+        self.game_play.temp_button.bind(on_press=self.go_to_question)
+        self.questions.continue_button.bind(on_press=self.go_to_game_play)
+
         
-        # Load quesitons from QCASystem
-        self.qcaSystem = QCASystem.QCASystem('default')
-        self.qcaSystem.loadDefaultQCA()
-        qca = self.qcaSystem.db.getQCA()
-  
-        # Build matrix of questions
-        qtest = QuestionMatrix(qca, self.question, self.answer)
-        qtest.size_hint = (0.9, 0.5)
-        qtest.pos = self.mainBox.center
-        self.mainBox.add_widget( qtest)
 
-    def changeText(self, label):
-        label.text = gamelogic.getOneSector(
-            self.qcaSystem.db.getAllCategories())
+    def go_to_options(self, instance):
+        self.switch_to(self.game_options)
+    def go_home(self, instance):
+        self.switch_to(self.home)
+    def go_to_game_play(self, instance):
+        self.switch_to(self.game_play)
+    def go_to_edit(self, instance):
+        self.switch_to(self.edit)
+    def go_to_question(self, instance):
+        self.switch_to(self.questions)
 
-    def showAnswer(self, label):
-        if label.password:
-            label.password = False
-        else:
-            label.password = True
+    
 
 class WheelofJeopardyApp(App):
     def build(self):
-        return WheelofJeopardy()
+        self.root = WheelofJeopardy()
+        self.root.bind(
+            size=self._update_rect, 
+            pos=self._update_rect
+        )
+        
+        with self.root.canvas.before:
+            Color(163/255, 228/255, 215/255, 1)
+            self.rect = Rectangle(
+                size=self.root.size,
+                pos=self.root.pos
+            )
+
+    def _update_rect(self, instance, value):
+        self.rect.size = instance.size
+        self.rect.pos = instance.pos
+        self.root.current_screen.size = instance.size
+        self.root.current_screen.pos = instance.pos
+
 
 if __name__ == "__main__":
     WheelofJeopardyApp().run()
