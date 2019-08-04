@@ -50,8 +50,9 @@ class QCASystem:
              print('Player already exist')
              
              
-a = QCASystem('sys')
-a.loadDefaultQCA()
-a.addCategory('V')
-a.addQA('V', ('Q?', 'A', False))
-print(a.db.getQCA())
+if __name__ == '__main__':             
+    a = QCASystem('sys')
+    a.loadDefaultQCA()
+    a.addCategory('V')
+    a.addQA('V', ('Q?', 'A', False))
+    print(a.db.getQCA())

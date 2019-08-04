@@ -73,8 +73,6 @@ class GameOptionsScreen(Screen):
         self.add_widget(self.start_button)
         
 
-    
-
     def build_num_teams_drop_down(self):
         MAX_TEAMS = 3
         self.main_button = Button()
@@ -108,7 +106,7 @@ class GameOptionsScreen(Screen):
         '''
 
         # Temp list of random names to simulate QCA querry result
-        set_list = ['set1', 'set2', 'set3', 'set4', 'set5', 'set6']
+        self.set_list = ['set1', 'set2', 'set3', 'set4', 'set5', 'set6']
         self.question_button = Button()
         self.question_button.text = "Select Question Set"
         self.question_button.size_hint = (0.4, 0.15)
@@ -117,7 +115,7 @@ class GameOptionsScreen(Screen):
         self.question_button.background_color = _COLOR_1
 
         self.question_drop_down = DropDown()  
-        for name in set_list:
+        for name in self.set_list:
             btn = Button(
                 text = name,
                 size_hint_y = None,
@@ -176,9 +174,12 @@ class QuestionScreen(Screen):
             background_color = _COLOR_1
         )
         
-
     def show_question_popup(self, instance):
         self.current_question_button = instance
+        self.question_popup.size_hint = (0.5 , 0.5)
+        self.question_popup.pos_hint = {'center_x': 0.5, 'center_y': 0.5}
+        self.question_label.size_hint = (1.0, 0.8)
+        self.question_label.text_size = self.question_label.size
         self.question_label.text = self.current_question_button.question
         self.question_popup.open()
 
@@ -186,15 +187,15 @@ class QuestionScreen(Screen):
         self.question_popup = Popup(
             title = "Question",
             size_hint = (0.5, 0.5),
-            pos_hint = {'center_x': 0.5, 'bottom': 1}
+            pos_hint = {'center_x': 0.5, 'bottom': 0.5}
         )
         self.question_float_layout = FloatLayout()
         self.question_label = Label(
             text = '',
-            size_hint = (1.0, 0.7),
             pos_hint = {'center_x': 0.5, 'center_y': 0.5},
             font_size = 40,
-            bold = True
+            valign = 'center',
+            halign = 'center'
         )
         self.show_answer_button = Button(
             text = 'show answer',
@@ -216,19 +217,22 @@ class QuestionScreen(Screen):
         )
         self.answer_float_layout = FloatLayout()
         self.answer_label = Label(
-            text= self.current_question_button.answer,
-            size_hint = (1.0, 0.7),
+            text = '',
             pos_hint = {'center_x': 0.5, 'center_y': 0.5},
             font_size = 40,
-            bold = True
+            valign = 'center',
+            halign = 'center'
         )
         self.answer_float_layout.add_widget(self.answer_label)
         self.answer_popup.content = self.answer_float_layout
 
-
     def show_answer_popup(self, instance):
         self.question_popup.dismiss()
-   
+        self.answer_popup.size_hint = (0.5 , 0.5)
+        self.answer_popup.pos_hint = {'center_x': 0.5, 'center_y': 0.5}
+        self.answer_label.size_hint = (1.0, 0.8)
+        self.answer_label.text_size = self.answer_label.size
+        self.answer_label.text = self.current_question_button.answer
         self.answer_popup.open()
 
     def build_question_grid(self):
@@ -237,20 +241,21 @@ class QuestionScreen(Screen):
             pos_hint = {'center_x': 0.5, 'center_y': 0.55 },
             cols = _NUM_CATS
         )
+        count = 0
         for cat in range(_NUM_CATS):
             cat = Button()
-            cat.text = 'A category'
+            cat.text = f'A category {count}'
             cat.bold = True
             cat.background_color = _COLOR_1
-            cat.disable = True
 
             self.grid.add_widget(cat)
             for question in range(_QUES_PER_CAT):
                 qbtn = QuestionAnswerButton()
                 qbtn.point_value = (question + 1) * 100
-                qbtn.text = str(qbtn.point_value)
+                qbtn.text = str(qbtn.point_value) + str(count)
                 qbtn.bind(on_press=self.show_question_popup)
                 self.grid.add_widget(qbtn)
+                count += 1
         
 
     
@@ -319,6 +324,8 @@ class WheelofJeopardy(ScreenManager):
         self.edit = EditQuestionScreen()
         self.questions = QuestionScreen()
 
+        self.populate_question_board()
+
         self.add_widget(self.home)
         self.add_widget(self.game_options)
         self.add_widget(self.questions)
@@ -347,7 +354,28 @@ class WheelofJeopardy(ScreenManager):
     def go_to_question(self, instance):
         self.switch_to(self.questions)
 
-    
+    def populate_question_board(self):
+        self.qca_system = QCASystem.QCASystem('default')
+        self.qca_system.loadDefaultQCA()
+        self.qca = self.qca_system.db.getQCA()
+
+        keys = list(self.qca.keys())
+        key_count = 0
+        q_count = 0
+        for child in self.questions.grid.children:
+            if type(child) == type(Button()):
+                child.text = keys[key_count]
+                key_count += 1 
+            else:
+                key = keys[key_count]
+                child.question = self.qca[key][q_count][1]
+                child.answer = self.qca[key][q_count][0]
+                q_count += 1
+
+            if q_count == _QUES_PER_CAT - 1:
+                q_count = 0    
+        self.questions.grid.children[4].question = "what is 2+2?"
+        self.questions.grid.children[4].answer = "-3 hahaha"
 
 class WheelofJeopardyApp(App):
     def build(self):
@@ -369,7 +397,14 @@ class WheelofJeopardyApp(App):
         self.rect.pos = instance.pos
         self.root.current_screen.size = instance.size
         self.root.current_screen.pos = instance.pos
-
+        self.root.questions.question_popup.size = (
+            instance.size[0]/2, 
+            instance.size[1]/2
+        )
+        self.root.questions.answer_popup.size = (
+            instance.size[0]/2, 
+            instance.size[1]/2
+        )
 
 if __name__ == "__main__":
     WheelofJeopardyApp().run()
