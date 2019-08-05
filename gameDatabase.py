@@ -33,10 +33,11 @@ class database:
     def setPlayers(self, newPlayer):
         for player in self.currentPlayers:
             if(newPlayer.getName() == player.getName()):
+                print('Player already exist!')
                 return False
-            else:
-                self.currentPlayers.append(newPlayer)
-                return True
+            
+        self.currentPlayers.append(newPlayer)
+        return True
             
     #After game has ended add current players to allplayers
     #Sets score to zero      
