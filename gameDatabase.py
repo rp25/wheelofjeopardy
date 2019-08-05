@@ -1,66 +1,93 @@
 # -*- coding: utf-8 -*-
 """
-Created on Mon Jul 15 10:16:59 2019
+Created on Mon Aug  5 10:58:33 2019
 
 @author: Rajan
 """
-
-#standard built in python libraries currently used or maybe used in the future
 import pickle
-import pandas as pd
-import numpy as np
 
-#database objec will hold all game related data including answers, categories, 
-# suggested question, scores, high scores, and current players
 class database:
     #creates a database object with a given name
     def __init__(self, name):
         self.name = name    
-        self.QCA = {}
-        #Limit to 3 players
-        self.players = {} #only store current game players and score {'player': intScore}
-        self.scores = {} #store higest scores for each player from all games  {'player': intScore}
-    
-    # Returns the name of the database
+        self.categories = {}
+        self.allPlayers = []
+        self.currentPlayers = []
+        self.round = 1    
+        self.spin = 0
+        
+    #Returns the name of the database    
     def getName(self):
         return self.name
-    #Returns a dictionary containing suggested questions, answers, and categories
-    def getQCA(self):
-        return self.QCA
-    #Returns a dictionary of current players and their current score
-    def getPlayers(self):
-        return self.players
-    #Returns a dictionary of highest score for each player from all games played
-    def getScores(self):
-        return self.scores
-    #Allows a function or obj to change the name of the database
+    
+    #Used to modify database name
     def setName(self, name):
         self.name = name
-    #Allows a function or obj to change the suggested questions, answers, and categories dictionary
-    def setQCA(self, cat, QAList):
-        self.QCA[cat] = QAList
-    #Allows a function or object to change the players and their score
-    def setPlayers(self, playersList):
-       self.players = playersList
-    #Allows a function or object to change the players and thier high score
-    def setScores(self, scores):
-        self.scores = scores
-    #Function to add new   questions, answers, and categories  
-    def addQCA(self, QCA):
+        
+    #Used to add categories to the database    
+    def setCategories(self, category):
+        self.categories[category] = None
+        
+    #Used to add new players
+    #Checks to see if player exists    
+    def setPlayers(self, newPlayer):
+        for player in self.currentPlayers:
+            if(newPlayer.getName() == player.getName()):
+                return False
+            else:
+                self.currentPlayers.append(newPlayer)
+                return True
+            
+    #After game has ended add current players to allplayers
+    #Sets score to zero      
+    def updateAllPLayer(self):
+        for currentPlayer in self.currentPlayers:
+            for player in self.allPlayers:
+                currentPlayer.setScore(0)
+                if(currentPlayer.getName() == player.getName()):
+                    index = list.index(player)
+                    self.allPlayers.pop(index)
+                    self.allPlayers.append(currentPlayer)
+                else:
+                    self.allPlayers.append(currentPlayer)
+                    
+    #Used to change round of game
+    def setRound(self, roundNum):
+        self.round = roundNum
+        
+    #Used to change spin count of game
+    def setSpin(self, spinNum):
+        self.spin = spinNum
+    
+    #Returns current players
+    def getCurrentPlayers(self):
+        return self.currentPlayers
+    
+    #Returns current game round
+    def getRound(self):
+        return self.round
+    
+    #Returns current spin count
+    def getSpin(self):
+        return self.spin
+    
+    #???
+    def getNumPlayer(self):
         pass
-    #Returns all available Categories    
-    def getAllCategories(self):
-        return self.QCA.keys()
-    #Returns all current players
-    def getAllCurrentPlayers(self):
-        return self.players.keys()
-    #loads existing database from previous game or a saved game    
+    
+    #Exports database to a pickle file
+    def exportDB(self, path):
+        database = {'name' : self.name, 'categories' : self.categories, 'allPlayers' : self.allPlayers,
+                    'currentPlayers' : self.currentPlayers, 'round' : self.round, 'spin' : self.spin,}
+        pickle.dump(database, open(path + self.name + '.p', 'wb'))
+    
+    #loads database from a pickle file
     def loadDB(self, path):
         db = pickle.load(open(path, "rb"))
-        self.QCA = db['QCA']
-        self.players = db['players']
-        self.scores = db['scores']
-    #saves database to save game state and resume at a later time        
-    def saveDB(self, path):
-        database = {'QCA' : self.QCA, 'players' : self.players, 'scores' : self.scores}
-        pickle.dump(database, path + self.name + '.p')
+        self.name = db['name']  
+        self.categories = db['categories']
+        self.allPlayers = db['allPlayers']
+        self.currentPlayers = db['currentPlayers']
+        self.round = db['round']
+        self.spin = db['spin']
+        
