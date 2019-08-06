@@ -8,8 +8,9 @@ Created on Mon Aug  5 14:00:51 2019
 
 import pandas as pd
 import gameDatabase
-import gameLogic
-    
+from gameLogic import gameLogic
+
+class QCASystem:    
     def __init__(self, name):
         self.name = name    
         self.db = gameDatabase.database('newDefault')
@@ -20,10 +21,10 @@ import gameLogic
         self.db.loadDB(path)
         
     def addCategory(self, newCat):
-         for cat in self.db.categories:
-             if(newCat == cat):
-                 print('Category already exists!')
-                 return False
+        for cat in self.db.categories:
+            if(newCat == cat):
+                print('Category already exists!')
+                return False
         db.setCategories(category)
         return True
              

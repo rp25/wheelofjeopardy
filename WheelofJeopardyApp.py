@@ -1,5 +1,5 @@
 import QCASystem
-import gamelogic
+import gameLogic
 
 import kivy
 from kivy.app import App
@@ -11,6 +11,7 @@ from kivy.uix.popup import Popup
 from kivy.uix.image import Image
 from kivy.uix.gridlayout import GridLayout 
 from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.relativelayout import RelativeLayout
 from kivy.uix.textinput import TextInput
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.dropdown import DropDown
@@ -138,6 +139,11 @@ class GameOptionsScreen(Screen):
 
 class GamePlayScreen(Screen):
     def __init__(self, **kwargs):
+        number_of_teams = 0
+        team_names = []
+        team_scores = []
+        cur_round = 1
+
         super(GamePlayScreen, self).__init__(**kwargs)
 
         self.temp_button = Button(
@@ -145,6 +151,48 @@ class GamePlayScreen(Screen):
         )
         self.add_widget(self.temp_button)
 
+    def build_layout(self):
+        self.game_play_float_layout = RelativeLayout()
+        self.size_hint = (1, 1)
+        self.pos_hint = {'center_x': 0.5, 'center_y': 0.5}
+
+        self.home_button = HomeButton()
+        self.score_label = Label(
+            text = f'round {self.cur_round}'
+        )
+
+        # holds the scores
+        self.box_scores = BoxLayout(
+            size_hint = (0.2, 0.2),
+            pos_hint = {'left': 0.95, 'top': 0.95},
+        )
+        self.score_label = Label(
+            text = 'Scores',
+            bold = True,
+            size_hint = (1, 1/3),
+            pos_hint = {'top': 1}
+        )
+        self.score_grid = GridLayout(
+            cols = 3,
+            size_hint = (1, 2/3),
+            pos_hint = {'bott'}
+        )
+        
+    
+    def update_round(self, rnd):
+        self.cur_round = rnd
+        self.score_label.text = f'round {self.cur_round}'
+    
+    def update_score(self, team, points):
+        pass
+
+class HomeButton(Button):
+    def __init__(self, **kwargs):
+        super(HomeButton, self).__init__(**kwargs)
+        text = 'home',
+        size_hint = (1/8, 1/12),
+        pos_hint = {'x': 0.02, 'y': 0.02},
+        background_color = _COLOR_1
 
 class QuestionAnswerButton(Button):
     def __init__(self, **kwargs):
@@ -402,7 +450,7 @@ class WheelofJeopardy(ScreenManager):
         self.switch_to(self.questions)
 
     def populate_question_board(self):
-        self.qca_system = QCASystem.QCASystem('default')
+        self.qca_system = QCASystem.QCASystem('qca')
         self.qca_system.loadDefaultQCA()
         self.qca = self.qca_system.db.getQCA()
 
