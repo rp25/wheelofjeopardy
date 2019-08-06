@@ -20,6 +20,10 @@ class database:
     def getName(self):
         return self.name
     
+    #Returns the categories of the database    
+    def getCategories(self):
+        return self.categories
+    
     #Used to modify database name
     def setName(self, name):
         self.name = name
