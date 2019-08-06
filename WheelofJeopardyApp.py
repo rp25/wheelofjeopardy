@@ -138,25 +138,28 @@ class GameOptionsScreen(Screen):
         self.add_widget(self.question_button)
 
 class GamePlayScreen(Screen):
+    number_of_teams = 3
+    team_names = ['team1', 'team1', 'team3']
+    team_scores = [0, 0, 0]
+    cur_round = 1
+    
     def __init__(self, **kwargs):
-        number_of_teams = 0
-        team_names = []
-        team_scores = []
-        cur_round = 1
-
         super(GamePlayScreen, self).__init__(**kwargs)
 
-        self.temp_button = Button(
-            text = 'go to question'
-        )
-        self.add_widget(self.temp_button)
+        self.build_layout()
+        self.add_widget(self.game_play_float_layout)
 
     def build_layout(self):
         self.game_play_float_layout = RelativeLayout()
         self.size_hint = (1, 1)
         self.pos_hint = {'center_x': 0.5, 'center_y': 0.5}
 
-        self.home_button = HomeButton()
+        self.home_button = Button(
+            text = 'home',
+            size_hint = (1/8, 1/12),
+            pos_hint = {'x': 0.02, 'y': 0.02},
+            background_color = _COLOR_1
+        )
         self.score_label = Label(
             text = f'round {self.cur_round}'
         )
@@ -165,6 +168,7 @@ class GamePlayScreen(Screen):
         self.box_scores = BoxLayout(
             size_hint = (0.2, 0.2),
             pos_hint = {'left': 0.95, 'top': 0.95},
+            orientation = 'vertical'
         )
         self.score_label = Label(
             text = 'Scores',
@@ -172,11 +176,34 @@ class GamePlayScreen(Screen):
             size_hint = (1, 1/3),
             pos_hint = {'top': 1}
         )
+
+        self.build_score_grid()
+        self.box_scores.add_widget(self.score_label)
+        self.box_scores.add_widget(self.score_grid)
+        self.game_play_float_layout.add_widget(self.home_button)
+        self.game_play_float_layout.add_widget(self.box_scores)
+        
+    def build_score_grid(self):
         self.score_grid = GridLayout(
-            cols = 3,
+            cols = self.number_of_teams,
             size_hint = (1, 2/3),
-            pos_hint = {'bott'}
+            pos_hint = {'bottom': 1}
         )
+
+        for i in range(self.number_of_teams):
+            lbl = Label()
+            lbl.text = self.team_names[i]
+            self.score_grid.add_widget(lbl)
+
+        for i in range(self.number_of_teams):    
+            score = Label()
+            score.text = f'{self.team_scores[i]}'
+            self.score_grid.add_widget(score)
+
+        
+
+
+        
         
     
     def update_round(self, rnd):
@@ -185,14 +212,6 @@ class GamePlayScreen(Screen):
     
     def update_score(self, team, points):
         pass
-
-class HomeButton(Button):
-    def __init__(self, **kwargs):
-        super(HomeButton, self).__init__(**kwargs)
-        text = 'home',
-        size_hint = (1/8, 1/12),
-        pos_hint = {'x': 0.02, 'y': 0.02},
-        background_color = _COLOR_1
 
 class QuestionAnswerButton(Button):
     def __init__(self, **kwargs):
@@ -419,7 +438,7 @@ class WheelofJeopardy(ScreenManager):
         self.edit = EditQuestionScreen()
         self.questions = QuestionScreen()
 
-        self.populate_question_board()
+        # self.populate_question_board()
 
         self.add_widget(self.home)
         self.add_widget(self.game_options)
@@ -433,7 +452,7 @@ class WheelofJeopardy(ScreenManager):
         self.edit.home_button.bind(on_press=self.go_home)
         self.game_options.home_button.bind(on_press=self.go_home)
         self.game_options.start_button.bind(on_press=self.go_to_game_play)
-        self.game_play.temp_button.bind(on_press=self.go_to_question)
+        self.game_play.home_button.bind(on_press=self.go_to_question)
         self.questions.continue_button.bind(on_press=self.go_to_game_play)
 
         
