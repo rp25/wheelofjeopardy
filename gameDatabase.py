@@ -5,7 +5,7 @@ Created on Mon Aug  5 10:58:33 2019
 @author: Rajan
 """
 import pickle
-
+import QAL
 
 class database:
     #creates a database object with a given name

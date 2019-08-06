@@ -6,15 +6,16 @@ Created on Mon Aug  5 14:00:51 2019
 
 import gameDatabase
 import gameLogic
-import os 
+import QAL
+
 class QCASystem:
     def __init__(self, name):
         self.name = name    
-        self.db = gameDatabase.database('newDefault')
+        self.db = gameDatabase.database('')
         self.gL = gameLogic.gameLogic()
 
     #add players after db is loaded since it clears players and high scores
-    def loadDefaultQCA(self, path = 'newDefault.p'):
+    def loadDefaultQCA(self, path = 'default2.p'):
         self.db.loadDB(path)
         
     def addCategory(self, newCat):
@@ -37,7 +38,7 @@ class QCASystem:
          self.db.setPlayers(newPlayer)
              
 if __name__ == '__main__':      
-    exec(open("./QAL.py").read())
+    #exec(open("./QAL.py").read())
     a = QCASystem('sys')
     a.loadDefaultQCA()
 #    a.addCategory('V')
