@@ -12,6 +12,7 @@ class player:
         self.name = name    
         self.score = 0
         self.highscore = 0
+        self.turn = 0
         
     #Returns the name of the player    
     def getName(self):
