@@ -1,6 +1,8 @@
 import QCASystem
 import gameLogic
 
+import random
+
 import kivy
 from kivy.app import App
 from kivy.graphics import Color, Rectangle
@@ -142,6 +144,7 @@ class GamePlayScreen(Screen):
     team_names = ['team1', 'team1', 'team3']
     team_scores = [0, 0, 0]
     cur_round = 1
+    categories = ['cat1', 'cat2', 'cat3', 'cat4', 'cat5', 'cat6']
     
     def __init__(self, **kwargs):
         super(GamePlayScreen, self).__init__(**kwargs)
@@ -160,8 +163,11 @@ class GamePlayScreen(Screen):
             pos_hint = {'x': 0.02, 'y': 0.02},
             background_color = _COLOR_1
         )
-        self.score_label = Label(
-            text = f'round {self.cur_round}'
+        self.round_label = Label(
+            text = f'round {self.cur_round}',
+            size_hint = (1/8, 1/12),
+            pos_hint = {'top': 0.95, 'right': 0.95},
+            color = _COLOR_1
         )
 
         # holds the scores
@@ -178,10 +184,14 @@ class GamePlayScreen(Screen):
         )
 
         self.build_score_grid()
+        self.build_wheel()
         self.box_scores.add_widget(self.score_label)
         self.box_scores.add_widget(self.score_grid)
         self.game_play_float_layout.add_widget(self.home_button)
         self.game_play_float_layout.add_widget(self.box_scores)
+        self.game_play_float_layout.add_widget(self.round_label)
+        self.game_play_float_layout.add_widget(self.spin_result_label)
+        self.game_play_float_layout.add_widget(self.spin_button)
         
     def build_score_grid(self):
         self.score_grid = GridLayout(
@@ -201,10 +211,27 @@ class GamePlayScreen(Screen):
             self.score_grid.add_widget(score)
 
         
+    def build_wheel(self):
+        self.spin_result_label = Label(
+            text = 'spin result',
+            size_hint = (1/6, 1/6),
+            pos_hint = {'center_x': 0.5, 'center_y': 0.5},
+        )
 
-
+        self.spin_button = Button(
+            text = "spin",
+            size_hint = (1/8, 1/8),
+            pos_hint = {'center_x': 0.5, 'center_y': 0.3},
+            on_press = self.spin
+        )
+    
+    def update_spin_result(self, int_result):
+        if int_result < 6:
+            self.spin_result_label.text = self.categories[int_result]
         
-        
+    def spin(self, instance):
+        ran = random.randint(0, 6)
+        self.update_spin_result(ran)
     
     def update_round(self, rnd):
         self.cur_round = rnd
@@ -452,7 +479,7 @@ class WheelofJeopardy(ScreenManager):
         self.edit.home_button.bind(on_press=self.go_home)
         self.game_options.home_button.bind(on_press=self.go_home)
         self.game_options.start_button.bind(on_press=self.go_to_game_play)
-        self.game_play.home_button.bind(on_press=self.go_to_question)
+        self.game_play.home_button.bind(on_press=self.go_home)
         self.questions.continue_button.bind(on_press=self.go_to_game_play)
 
         
@@ -469,7 +496,8 @@ class WheelofJeopardy(ScreenManager):
         self.switch_to(self.questions)
 
     def populate_question_board(self):
-        self.qca_system = QCASystem.QCASystem('qca')
+        exec(open("./QAL.py").read())
+        self.qca_system = QCASystem.QCASystem('sys')
         self.qca_system.loadDefaultQCA()
         self.qca = self.qca_system.db.getQCA()
 
