@@ -6,6 +6,7 @@ Created on Mon Aug  5 10:58:33 2019
 """
 import pickle
 
+
 class database:
     #creates a database object with a given name
     def __init__(self, name):
@@ -88,6 +89,7 @@ class database:
     
     #loads database from a pickle file
     def loadDB(self, path):
+        
         db = pickle.load(open(path, "rb"))
         self.name = db['name']  
         self.categories = db['categories']
