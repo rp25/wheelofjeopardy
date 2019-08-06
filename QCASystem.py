@@ -6,11 +6,9 @@ Created on Mon Aug  5 14:00:51 2019
 """
 
 
-import pandas as pd
 import gameDatabase
 import gameLogic
-import QAL
-    
+import os 
 class QCASystem:
     def __init__(self, name):
         self.name = name    
@@ -26,23 +24,25 @@ class QCASystem:
              if(newCat == cat):
                  print('Category already exists!')
                  return False
-         db.setCategories(category)
+         self.db.setCategories(newCat)
          return True
              
     #list insert use index system
-    def addQA(self, cat, QAL, level): 
+    def addQA(self, cat, newQAL, level): 
         try:
-            db.categories[cat].pop(level - 1)
-            db.categories[cat].insert(level - 1, QAL)
-        except Except as e:
+            self.db.categories[cat].pop(level - 1)
+            self.db.categories[cat].insert(level - 1, newQAL)
+        except Exception as e:
             print(e)
   
     def addNewPlayer(self, newPlayer): 
-         db.setPlayers(newPlayer)
+         self.db.setPlayers(newPlayer)
              
-if __name__ == '__main__':             
+if __name__ == '__main__':      
+    exec(open("./QAL.py").read())
     a = QCASystem('sys')
     a.loadDefaultQCA()
 #    a.addCategory('V')
 #    a.addQA('V', ('Q?', 'A', False))
 #    print(a.db.getQCA())
+
