@@ -8,13 +8,17 @@ from kivy.uix.widget import Widget
 from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.popup import Popup
+from kivy.uix.image import Image
 from kivy.uix.gridlayout import GridLayout 
 from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.textinput import TextInput
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.dropdown import DropDown
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.properties import ObjectProperty, StringProperty
-
+from kivy.graphics import PushMatrix, PopMatrix, Rotate
+from kivy.graphics.transformation import Matrix
+from kivy.animation import Animation
 
 # Main colors used in color theme
 _COLOR_1 = (199/255, 0, 57/255, 1)
@@ -132,8 +136,6 @@ class GameOptionsScreen(Screen):
         )
         self.add_widget(self.question_button)
 
-
-
 class GamePlayScreen(Screen):
     def __init__(self, **kwargs):
         super(GamePlayScreen, self).__init__(**kwargs)
@@ -143,14 +145,15 @@ class GamePlayScreen(Screen):
         )
         self.add_widget(self.temp_button)
 
+
 class QuestionAnswerButton(Button):
     def __init__(self, **kwargs):
         super(QuestionAnswerButton, self).__init__(**kwargs)
         self.question = 'not assigned'
         self.answer = 'not assigned'
+        self.category = 'not assigned'
         self.point_value = ''
         self.text = str(self.point_value)
-
 
 class QuestionScreen(Screen):
     def __init__(self, **kwargs):
@@ -193,7 +196,7 @@ class QuestionScreen(Screen):
         self.question_label = Label(
             text = '',
             pos_hint = {'center_x': 0.5, 'center_y': 0.5},
-            font_size = 40,
+            font_size = 20,
             valign = 'center',
             halign = 'center'
         )
@@ -219,7 +222,7 @@ class QuestionScreen(Screen):
         self.answer_label = Label(
             text = '',
             pos_hint = {'center_x': 0.5, 'center_y': 0.5},
-            font_size = 40,
+            font_size = 20,
             valign = 'center',
             halign = 'center'
         )
@@ -246,9 +249,7 @@ class QuestionScreen(Screen):
             cat = Button()
             cat.text = f'A category {count}'
             cat.background_color = _COLOR_1
-            cat.font_size = 30
-            cat.text_size = self.grid.size
-
+            cat.bold = True
 
             self.grid.add_widget(cat)
             for question in range(_QUES_PER_CAT):
@@ -259,13 +260,11 @@ class QuestionScreen(Screen):
                 self.grid.add_widget(qbtn)
                 count += 1
         
-
-    
-
 class EditQuestionScreen(Screen):
     def __init__(self, **kwargs):
         super(EditQuestionScreen, self).__init__(**kwargs)
         self.name = 'edit'
+        self.questoin_dictionary = {}
 
         self.grid = GridLayout()
         self.grid.orientation = 'horizontal'
@@ -288,15 +287,61 @@ class EditQuestionScreen(Screen):
             background_color = _COLOR_1
         )
 
+        self.build_edit_entry_popup()
+
         self.add_widget(self.grid)
         self.add_widget(self.home_button)
         self.add_widget(self.save_button)
 
-    def question_entry_popup(self):
-        pass
+    def build_edit_entry_popup(self):
+        self.edit_entry_popup = Popup(
+            size_hint = (0.5, 0.5),
+            pos_hint = {'center_x': 0.5, 'center_y': 0.5},
+            title = "Enter Question & Answer"
+        )
+        self.edit_float_layout = FloatLayout(
+            size_hint = (1, 1), 
+            pos_hint = {'center_x': 0.5, 'center_y': 0.5},
+        )
+
+        self.question_entry = TextInput(
+            multiline = True,
+            size_hint = (0.9, 0.30),
+            pos_hint = {'center_x': 0.5, 'center_y': 0.75},
+            hint_text_color = (0, 0, 0, 0.5),
+            hint_text = "type question here"
+        )
+
+        self.answer_entry = TextInput(
+            multiline = True,
+            size_hint = (0.9, 0.30),
+            pos_hint = {'center_x': 0.5, 'center_y': 0.35},
+            hint_text_color = (0, 0, 0, 0.5),
+            hint_text = "type answer here"
+        )
+
+        self.apply_button = Button(
+            text = 'apply',
+            size_hint = (1, 0.1),
+            pos_hint = {'center_x': 0.5, 'y': .02}
+        )
+
+        self.edit_float_layout.add_widget(self.question_entry)
+        self.edit_float_layout.add_widget(self.answer_entry)
+        self.edit_float_layout.add_widget(self.apply_button)
+        self.edit_entry_popup.content = self.edit_float_layout
+
     
-    def answer_entry_popup(self):
-        pass
+    def show_edit_entry_popup(self, instance):
+        self.current_selection = instance
+        self.edit_entry_popup.open()
+
+    def add_question_ans_to_qca(self, instance):
+        index = int(instance.point_value / 100 )
+        self.questoin_dictionary[instance.category][index] = (
+            instance.answer,
+            instance.question
+        )        
 
     def build_question_grid(self):
         for cat in range(_NUM_CATS):
@@ -311,8 +356,8 @@ class EditQuestionScreen(Screen):
                 qbtn = QuestionAnswerButton()
                 qbtn.point_value = (question + 1) * 100
                 qbtn.text = str(qbtn.point_value)
+                qbtn.bind(on_press=self.show_edit_entry_popup)
                 self.grid.add_widget(qbtn)
-
 
 
 ## ROOT WIDGET
@@ -370,14 +415,13 @@ class WheelofJeopardy(ScreenManager):
                 key_count += 1 
             else:
                 key = keys[key_count]
+                child.category = key
                 child.question = self.qca[key][q_count][1]
                 child.answer = self.qca[key][q_count][0]
                 q_count += 1
 
             if q_count == _QUES_PER_CAT - 1:
                 q_count = 0    
-        self.questions.grid.children[4].question = "what is 2+2?"
-        self.questions.grid.children[4].answer = "-3 hahaha"
 
 class WheelofJeopardyApp(App):
     def build(self):
@@ -407,6 +451,8 @@ class WheelofJeopardyApp(App):
             instance.size[0]/2, 
             instance.size[1]/2
         )
+        if self.root.current_screen == self.root.game_play:
+            self.root.game_play.animate()
 
 if __name__ == "__main__":
     WheelofJeopardyApp().run()
