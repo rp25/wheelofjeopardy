@@ -14,10 +14,10 @@ class gameLogic:
     def __init__(self):
         self.defaultSectors = []
         self.db = gameDatabase.database('')
-        self.player = player.player()
+        # self.player = player.player()
  
     #check with the team if returning # is sufficient here   
-    def getOneSector():
+    def getOneSector(self):
         sector = random.randint(0, 11)
         return sector
        
