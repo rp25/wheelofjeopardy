@@ -76,7 +76,7 @@ class GameOptionsScreen(Screen):
         )
         
         self.build_num_teams_drop_down()
-        self.build_question_selection_drop_down()
+        # self.build_question_selection_drop_down()
         self.add_widget(self.home_button)
         self.add_widget(self.start_button)
         
@@ -97,7 +97,7 @@ class GameOptionsScreen(Screen):
                 size_hint_y = None,
                 height = 30
             )
-            btn.bind(on_press=lambda btn: self.drop_down.select(btn.text))
+            btn.bind(on_press=self.get_team_names)
 
             self.drop_down.add_widget(btn)
 
@@ -106,6 +106,28 @@ class GameOptionsScreen(Screen):
             on_select=lambda instance, x: setattr(self.main_button, 'text', x)
         )
         self.add_widget(self.main_button)
+
+    def get_team_names(self, instance):
+        self.drop_down.select(instance.text)
+        try:
+            self.team_name_grid.clear_widgets()
+        except:
+            self.team_name_grid = GridLayout()
+            self.add_widget(self.team_name_grid)
+    
+        self.team_name_grid.rows = int(instance.text)
+        self.team_name_grid.size_hint = (0.3 , 0.1 * int(instance.text))
+        self.team_name_grid.pos_hint = {'center_x': 0.5, 'center_y': 0.5}
+        for i in range(int(instance.text)):
+            text = TextInput()
+            text.hint_text = (f"Enter Team {i + 1} name")
+            self.team_name_grid.add_widget(text)
+
+    def update_team_names(self):
+        children = self.team_name_grid.children
+        self.parent.game_play.team_names = []
+        for child in children:
+            self.parent.game_play.team_names.append(child.text)
 
     def build_question_selection_drop_down(self):
         '''
@@ -152,8 +174,6 @@ class MyLabel(Label):
                 0.25
             )
             Rectangle(pos=self.pos, size=self.size)
-
-
 
 class GamePlayScreen(Screen):
     number_of_teams = 3
@@ -237,6 +257,10 @@ class GamePlayScreen(Screen):
             score.text = f'{self.team_scores[i]}'
             self.score_grid.add_widget(score)
 
+    def update_team_names(self):
+        children = self.score_grid.children
+        for i in range(len(self.team_names)):
+            children[i + len(self.team_names)].text = self.team_names[i]
         
     def build_wheel(self):
         self.spin_result_label = Label(
@@ -651,6 +675,8 @@ class WheelofJeopardy(ScreenManager):
     def go_to_game_play(self, instance):
         self.switch_to(self.game_play)
         self.populate_question_board()
+        self.game_options.update_team_names()
+        self.game_play.update_team_names()
     def go_to_edit(self, instance):
         self.switch_to(self.edit)
     def go_to_question(self, instance):
