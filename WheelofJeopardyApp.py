@@ -1,6 +1,7 @@
 import QCASystem
 import gameLogic
 import QAL
+import player
 
 import random
 
@@ -126,8 +127,14 @@ class GameOptionsScreen(Screen):
     def update_team_names(self):
         children = self.team_name_grid.children
         self.parent.game_play.team_names = []
+        self.parent.game_play.teams = []
         for child in children:
             self.parent.game_play.team_names.append(child.text)
+
+        # make players:
+        for child in children:
+            plyr = player.player(f'{child.text}')
+            self.parent.game_play.teams.append(plyr)
 
     def build_question_selection_drop_down(self):
         '''
@@ -178,9 +185,10 @@ class MyLabel(Label):
 class GamePlayScreen(Screen):
     number_of_teams = 3
     team_names = ['team1', 'team2', 'team3']
-    team_scores = [0, 0, 0]
+    teams = []
     cur_round = 1
     qca_dict = {}
+    gLogic = gameLogic.gameLogic()
     
     def __init__(self, **kwargs):
         super(GamePlayScreen, self).__init__(**kwargs)
@@ -254,7 +262,12 @@ class GamePlayScreen(Screen):
 
         for i in range(self.number_of_teams):    
             score = MyLabel()
-            score.text = f'{self.team_scores[i]}'
+
+            try:
+                score.text = f'{self.teams[i].getScore()}'
+            except:
+                score.text = '0'
+
             self.score_grid.add_widget(score)
 
     def update_team_names(self):
@@ -295,7 +308,7 @@ class GamePlayScreen(Screen):
         #     self.parent.go_to_question(Button())
 
     def spin(self, instance):
-        ran = random.randint(0, 11)
+        ran = self.gLogic.getOneSector()
         self.update_spin_result(ran)
     
     def update_round(self, rnd):
@@ -706,7 +719,7 @@ class WheelofJeopardy(ScreenManager):
             if q_count == _QUES_PER_CAT - 1:
                 q_count = 0    
         
-        self.game_play.qca_dict = self.qca
+        self.game_play.qca_dict = dict( (k, self.qca[k]) for k in (keys[0:6]) )
 
 class WheelofJeopardyApp(App):
     def build(self):
