@@ -189,6 +189,7 @@ class GamePlayScreen(Screen):
     cur_round = 1
     qca_dict = {}
     gLogic = gameLogic.gameLogic()
+    turn = 0 #integer from 0 - len(teams) - 1 indicating turn
     
     def __init__(self, **kwargs):
         super(GamePlayScreen, self).__init__(**kwargs)
@@ -214,8 +215,8 @@ class GamePlayScreen(Screen):
             background_color = _COLOR_1
         )
 
-        self.round_label = Label(
-            text = f'round {self.cur_round}',
+        self.turn_label = Label(
+            text = "team 1",
             size_hint = (1/8, 1/12),
             pos_hint = {'top': 0.95, 'right': 0.95},
             color = _COLOR_1
@@ -242,7 +243,7 @@ class GamePlayScreen(Screen):
         self.box_scores.add_widget(self.score_grid)
         self.game_play_float_layout.add_widget(self.home_button)
         self.game_play_float_layout.add_widget(self.box_scores)
-        self.game_play_float_layout.add_widget(self.round_label)
+        self.game_play_float_layout.add_widget(self.turn_label)
         self.game_play_float_layout.add_widget(self.spin_result_label)
         self.game_play_float_layout.add_widget(self.spin_button)
         self.game_play_float_layout.add_widget(self.question_button)
@@ -271,10 +272,16 @@ class GamePlayScreen(Screen):
             self.score_grid.add_widget(score)
 
     def update_team_names(self):
+        
         children = self.score_grid.children
         for i in range(len(self.team_names)):
             children[i + len(self.team_names)].text = self.team_names[i]
+            children[i].text = str(self.teams[i].getScore())
+        # update turn label name:
+        self.turn_label.text = f"{self.teams[self.turn ].name}'s turn"
+
         
+
     def build_wheel(self):
         self.spin_result_label = Label(
             text = 'spin result',
@@ -310,13 +317,15 @@ class GamePlayScreen(Screen):
     def spin(self, instance):
         ran = self.gLogic.getOneSector()
         self.update_spin_result(ran)
+        self.turn = (self.turn + 1) % len(self.teams)
+        self.turn_label.text = f"{self.teams[self.turn ].name}'s turn"
     
     def update_round(self, rnd):
-        self.cur_round = rnd
-        self.score_label.text = f'round {self.cur_round}'
-    
-    def update_score(self, team, points):
         pass
+    
+    def update_score(self, points):
+        self.teams[self.turn].setScore(points + self.teams[self.turn].getScore())
+        self.update_team_names()
 
 class QuestionAnswerButton(Button):
     def __init__(self, **kwargs):
@@ -430,6 +439,8 @@ class QuestionScreen(Screen):
         self.answer_popup.content = self.answer_float_layout
 
     def increase_points(self, instance):
+        self.parent.game_play.update_score(
+            self.current_question_button.point_value)
         print(f"You earned: {self.current_question_button.point_value} points")
         self.answer_popup.dismiss()
 
@@ -676,7 +687,7 @@ class WheelofJeopardy(ScreenManager):
         self.game_options.start_button.bind(on_press=self.go_to_game_play)
         self.game_play.home_button.bind(on_press=self.go_home)
         self.game_play.question_button.bind(on_press=self.go_to_question)
-        self.questions.continue_button.bind(on_press=self.go_to_game_play)
+        self.questions.continue_button.bind(on_press=self.go_back_to_game_play)
         
 
         
@@ -690,6 +701,8 @@ class WheelofJeopardy(ScreenManager):
         self.populate_question_board()
         self.game_options.update_team_names()
         self.game_play.update_team_names()
+    def go_back_to_game_play(self, instance):
+        self.switch_to(self.game_play)
     def go_to_edit(self, instance):
         self.switch_to(self.edit)
     def go_to_question(self, instance):
