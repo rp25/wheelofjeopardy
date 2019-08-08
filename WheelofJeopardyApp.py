@@ -222,6 +222,14 @@ class GamePlayScreen(Screen):
             color = _COLOR_1
         )
 
+        self.free_turn_button = Button(
+            text = "free turns",
+            size_hint = (1/2, 1/10),
+            pos_hint = {'y': 0.05, 'center_x': 0.5},
+            background_color = _COLOR_1,
+            on_press = self.update_free_turn_btn
+        )
+
         # holds the scores
         self.box_scores = BoxLayout(
             size_hint = (0.2, 0.2),
@@ -245,9 +253,22 @@ class GamePlayScreen(Screen):
         self.game_play_float_layout.add_widget(self.box_scores)
         self.game_play_float_layout.add_widget(self.turn_label)
         self.game_play_float_layout.add_widget(self.spin_result_label)
+        self.game_play_float_layout.add_widget(self.free_turn_button)
         self.game_play_float_layout.add_widget(self.spin_button)
         self.game_play_float_layout.add_widget(self.question_button)
         
+    def update_free_turn_btn(self, instance):
+        
+        if self.teams[self.turn - 1].getTurn() > 0:
+            self.teams[self.turn - 1].setTurn(-1)
+            print(f"team: {self.teams[self.turn -1].name}, turns: {self.teams[self.turn -1].getTurn()}")
+            if self.turn - 1 < 0:
+                self.turn == len(self.teams) - 1
+            else:
+                self.turn -= 1
+            
+            self.update_team_names()
+
     def build_score_grid(self):
         self.score_grid = GridLayout(
             cols = self.number_of_teams,
@@ -279,7 +300,8 @@ class GamePlayScreen(Screen):
             children[i].text = str(self.teams[i].getScore())
         # update turn label name:
         self.turn_label.text = f"{self.teams[self.turn ].name}'s turn"
-
+        self.free_turn_button.text = (f"team {self.teams[self.turn-1].getName()}"
+            + f" has {self.teams[self.turn-1].getTurn()} free turns, click to use")
         
 
     def build_wheel(self):
@@ -310,21 +332,38 @@ class GamePlayScreen(Screen):
         if int_result:
             self.spin_result_label.text = sectors[int_result]
         
-        #TODO: update a label on question page with category
-        # if int_result < 6:
-        #     self.parent.go_to_question(Button())
-
     def spin(self, instance):
-        ran = self.gLogic.getOneSector()
-        self.update_spin_result(ran)
+        sector = self.gLogic.getOneSector()
+        self.update_spin_result(sector)
+        
+        result = self.spin_result_label.text
+        # check for bankrupt
+        if (result == 'bankrupt' and 
+            self.teams[self.turn].getScore() > 0):
+            
+            self.teams[self.turn].setScore(0)
+        
+        # check for double points
+        if result == 'double points':
+            cur = self.teams[self.turn].getScore()
+            self.teams[self.turn].setScore(cur * 2)
+        
+        if result == 'free turn':
+            self.teams[self.turn].setTurn(1)
+
+        # update free turn button text
+        self.free_turn_button.text = (f"team {self.teams[self.turn].getName()}"
+            + f" has {self.teams[self.turn].getTurn()} free turns, click to use")
+
         self.turn = (self.turn + 1) % len(self.teams)
         self.turn_label.text = f"{self.teams[self.turn ].name}'s turn"
-    
+        self.update_team_names()
+
     def update_round(self, rnd):
         pass
     
     def update_score(self, points):
-        self.teams[self.turn].setScore(points + self.teams[self.turn].getScore())
+        self.teams[self.turn-1].setScore(points + self.teams[self.turn-1].getScore())
         self.update_team_names()
 
 class QuestionAnswerButton(Button):
@@ -430,7 +469,7 @@ class QuestionScreen(Screen):
             text = 'incorrect',
             size_hint = (1/3, 1/6),
             pos_hint = {'center_x': 0.8, 'y': 0.01},
-            on_press = self.answer_popup.dismiss,
+            on_press = self.decrease_points,
             background_color = _COLOR_1
         )
         self.answer_float_layout.add_widget(self.answer_label)
@@ -442,6 +481,12 @@ class QuestionScreen(Screen):
         self.parent.game_play.update_score(
             self.current_question_button.point_value)
         print(f"You earned: {self.current_question_button.point_value} points")
+        self.answer_popup.dismiss()
+
+    def decrease_points(self, instance):
+        self.parent.game_play.update_score(
+            -self.current_question_button.point_value)
+        print(f"You lost: {self.current_question_button.point_value} points")
         self.answer_popup.dismiss()
 
     def show_answer_popup(self, instance):
@@ -629,9 +674,9 @@ class EditQuestionScreen(Screen):
                 else:
                     self.qca_dict[child.category] = [
                         QAL.QAL(child.question, child.answer, 1)
-                    ]
+                    ]        
 
-        print(self.qca_dict[list(self.qca_dict.keys())[0]][0].question)
+        self.parent.go_home(instance)
 
     def apply_question(self, instance):
         children = self.grid.children
@@ -729,7 +774,7 @@ class WheelofJeopardy(ScreenManager):
                 child.answer = self.qca[key][q_count].getAnswer()
                 q_count += 1
 
-            if q_count == _QUES_PER_CAT - 1:
+            if q_count == _QUES_PER_CAT:
                 q_count = 0    
         
         self.game_play.qca_dict = dict( (k, self.qca[k]) for k in (keys[0:6]) )
