@@ -770,8 +770,8 @@ class WheelofJeopardy(ScreenManager):
             else:
                 key = keys[key_count]
                 child.category = key
-                child.question = self.qca[key][q_count].getQuestion()
-                child.answer = self.qca[key][q_count].getAnswer()
+                child.question = self.qca[key][q_count].getAnswer()
+                child.answer = self.qca[key][q_count].getQuestion()
                 q_count += 1
 
             if q_count == _QUES_PER_CAT:
