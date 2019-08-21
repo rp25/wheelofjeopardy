@@ -20,7 +20,7 @@ from kivy.uix.textinput import TextInput
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.dropdown import DropDown
 from kivy.uix.screenmanager import ScreenManager, Screen
-from kivy.properties import ObjectProperty, StringProperty
+from kivy.properties import ObjectProperty, StringProperty, NumericProperty
 from kivy.graphics import PushMatrix, PopMatrix, Rotate
 from kivy.graphics.transformation import Matrix
 from kivy.animation import Animation
@@ -375,6 +375,25 @@ class QuestionAnswerButton(Button):
         self.point_value = ''
         self.text = str(self.point_value)
 
+class Timer(Label):
+    a = NumericProperty(30)  # seconds
+
+    def start(self):
+        Animation.cancel_all(self)  # stop any current animations
+        self.anim = Animation(a=0, duration=self.a)
+        def finish_callback(animation, incr_crude_clock):
+            incr_crude_clock.text = "FINISHED"
+        self.anim.bind(on_complete=finish_callback)
+        self.anim.start(self)
+
+    def on_a(self, instance, value):
+        self.text = f'Time Remaining: {round(value, 1)}'
+
+    def stop(self):
+        self.anim.stop(self)
+        self.anim.duration = self.a
+    
+
 class QuestionScreen(Screen):
     def __init__(self, **kwargs):
         super(QuestionScreen, self).__init__(**kwargs)
@@ -413,6 +432,18 @@ class QuestionScreen(Screen):
         self.question_label.text_size = self.question_label.size
         self.question_label.text = self.current_question_button.question
         self.question_popup.open()
+        
+        try:
+            self.question_float_layout.remove_widget(self.timer)
+        except:
+            pass
+        
+        self.timer = Timer()
+        self.timer.pos_hint = {'center_x': 0.5, 'top': 1}
+        self.timer.size_hint = (0.2, 0.2)
+        self.question_float_layout.add_widget(self.timer)
+        self.timer.start()
+        
 
     def reset_questions(self, instance):
         for child in self.grid.children:
@@ -689,9 +720,9 @@ class EditQuestionScreen(Screen):
         self.edit_entry_popup.dismiss()      
 
     def build_question_grid(self):
-        for cat in range(_NUM_CATS):
+        for cat_index in range(_NUM_CATS):
             cat = Button()
-            cat.text = 'A category'
+            cat.text = f'cat {cat_index + 1}'
             cat.bold = True
             cat.background_color = _COLOR_1
             cat.bind(on_press=self.show_cat_entry_popup)
@@ -761,12 +792,16 @@ class WheelofJeopardy(ScreenManager):
         else:
             self.qca = self.edit.qca_dict
         keys = list(self.qca.keys())
+        print(keys)
         key_count = 0
         q_count = 0
         for child in self.questions.grid.children:
+            # categories are buttons so filter on buttons
             if type(child) == type(Button()):
                 child.text = keys[key_count]
                 key_count += 1 
+
+            # Q&A are not default buttons
             else:
                 key = keys[key_count]
                 child.category = key
