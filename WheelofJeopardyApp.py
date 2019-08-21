@@ -321,8 +321,9 @@ class GamePlayScreen(Screen):
             children[i].text = str(self.teams[i].getScore())
         # update turn label name:
         self.turn_label.text = f"team { self.teams[self.turn ].name} spins next"
-        self.free_turn_button.text = (f"team {self.teams[self.turn-1].getName()}"
-            + f" has {self.teams[self.turn-1].getTurn()} free turns, click to use")
+        if self.spins > 1:
+            self.free_turn_button.text = (f"team {self.teams[self.turn-1].getName()}"
+                + f" has {self.teams[self.turn-1].getTurn()} free turns, click to use")
         
         if self.spins > 50:
             self.cur_round = 2
