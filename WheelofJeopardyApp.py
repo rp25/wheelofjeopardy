@@ -332,16 +332,17 @@ class GamePlayScreen(Screen):
         
         if self.spins > 50:
             self.cur_round = 2
+            self.spins = 0
         self.round_label.text = f'round {self.cur_round}: spin count {self.spins}'
         
-        if self.spins > 100:
+        if (self.cur_round == 2 and self.spins >= 50):
             self.round_label.text = f'GAME FINISHED!'
             winner = 0
+            winner_index = 0
             for i in range(len(self.team_names)):
               if self.teams[i].getScore() > winner:
                     winner = self.teams[i].getScore()
                     winner_index = i
-                       
             self.turn_label.text = f"team { self.teams[winner_index].name } won!"
                     
 
