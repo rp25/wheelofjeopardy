@@ -124,6 +124,7 @@ class GameOptionsScreen(Screen):
             text.hint_text = (f"Enter Team {i + 1} name")
             self.team_name_grid.add_widget(text)
 
+
     def update_team_names(self):
         children = self.team_name_grid.children
         self.parent.game_play.team_names = []
@@ -187,6 +188,7 @@ class GamePlayScreen(Screen):
     team_names = ['team1', 'team2', 'team3']
     teams = []
     cur_round = 1
+    spins = 0
     qca_dict = {}
     gLogic = gameLogic.gameLogic()
     turn = 0 #integer from 0 - len(teams) - 1 indicating turn
@@ -218,7 +220,7 @@ class GamePlayScreen(Screen):
         self.turn_label = Label(
             text = "team 1",
             size_hint = (1/8, 1/12),
-            pos_hint = {'top': 0.95, 'right': 0.95},
+            pos_hint = {'top': 0.91, 'right': 0.95},
             color = _COLOR_1
         )
 
@@ -245,6 +247,14 @@ class GamePlayScreen(Screen):
             color = (0, 0, 0, 1)
         )
 
+        self.round_label = Label(
+            text = f'round {self.cur_round}: spin count {self.spins}',
+            bold = True,
+            size_hint = (1/5, 1/5),
+            pos_hint = {'top': 1.0, 'right': .98}, 
+            color = (0, 0, 0, 1)
+        )
+
         self.build_score_grid()
         self.build_wheel()
         self.box_scores.add_widget(self.score_label)
@@ -256,6 +266,7 @@ class GamePlayScreen(Screen):
         self.game_play_float_layout.add_widget(self.free_turn_button)
         self.game_play_float_layout.add_widget(self.spin_button)
         self.game_play_float_layout.add_widget(self.question_button)
+        self.game_play_float_layout.add_widget(self.round_label)
         
     def update_free_turn_btn(self, instance):
         
@@ -299,9 +310,13 @@ class GamePlayScreen(Screen):
             children[i + len(self.team_names)].text = self.team_names[i]
             children[i].text = str(self.teams[i].getScore())
         # update turn label name:
-        self.turn_label.text = f"{self.teams[self.turn ].name}'s turn"
+        self.turn_label.text = f"team { self.teams[self.turn ].name} spins next"
         self.free_turn_button.text = (f"team {self.teams[self.turn-1].getName()}"
             + f" has {self.teams[self.turn-1].getTurn()} free turns, click to use")
+        
+        if self.spins > 50:
+            self.cur_round = 2
+        self.round_label.text = f'round {self.cur_round}: spin count {self.spins}'
         
 
     def build_wheel(self):
@@ -335,7 +350,8 @@ class GamePlayScreen(Screen):
     def spin(self, instance):
         sector = self.gLogic.getOneSector()
         self.update_spin_result(sector)
-        
+        self.spins += 1
+
         result = self.spin_result_label.text
         # check for bankrupt
         if (result == 'bankrupt' and 
@@ -358,9 +374,6 @@ class GamePlayScreen(Screen):
         self.turn = (self.turn + 1) % len(self.teams)
         self.turn_label.text = f"{self.teams[self.turn ].name}'s turn"
         self.update_team_names()
-
-    def update_round(self, rnd):
-        pass
     
     def update_score(self, points):
         self.teams[self.turn-1].setScore(points + self.teams[self.turn-1].getScore())
@@ -393,7 +406,6 @@ class Timer(Label):
         self.anim.stop(self)
         self.anim.duration = self.a
     
-
 class QuestionScreen(Screen):
     def __init__(self, **kwargs):
         super(QuestionScreen, self).__init__(**kwargs)
@@ -510,13 +522,13 @@ class QuestionScreen(Screen):
 
     def increase_points(self, instance):
         self.parent.game_play.update_score(
-            self.current_question_button.point_value)
+            self.current_question_button.point_value * self.parent.game_play.cur_round)
         print(f"You earned: {self.current_question_button.point_value} points")
         self.answer_popup.dismiss()
 
     def decrease_points(self, instance):
         self.parent.game_play.update_score(
-            -self.current_question_button.point_value)
+            -self.current_question_button.point_value * self.parent.game_play.cur_round)
         print(f"You lost: {self.current_question_button.point_value} points")
         self.answer_popup.dismiss()
 
@@ -527,7 +539,6 @@ class QuestionScreen(Screen):
         self.answer_label.size_hint = (1.0, 0.8)
         self.answer_label.text_size = self.answer_label.size
         self.answer_label.text = self.current_question_button.answer
-        # self.current_question_button.background_color = (216/255, 211/255, 211/255, .5)
         self.current_question_button.disabled = True
         self.answer_popup.open()
     
