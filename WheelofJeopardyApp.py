@@ -418,11 +418,16 @@ class QuestionAnswerButton(Button):
 class Timer(Label):
     a = NumericProperty(30)  # seconds
 
+    def __init__(self, inst, **kwargs):
+        super(Timer, self).__init__(**kwargs)
+        self.inst = inst
+
     def start(self):
         Animation.cancel_all(self)  # stop any current animations
         self.anim = Animation(a=0, duration=self.a)
         def finish_callback(animation, incr_crude_clock):
             incr_crude_clock.text = "FINISHED"
+            self.inst.show_answer_button.disabled = True
         self.anim.bind(on_complete=finish_callback)
         self.anim.start(self)
 
@@ -477,12 +482,15 @@ class QuestionScreen(Screen):
         except:
             pass
         
-        self.timer = Timer()
+        self.timer = Timer(self)
         self.timer.pos_hint = {'center_x': 0.5, 'top': 1}
         self.timer.size_hint = (0.2, 0.2)
         self.question_float_layout.add_widget(self.timer)
+        self.show_answer_button.disabled = False
         self.timer.start()
         
+    def disable_show_answer(self):
+        self.show_answer_button.disabled = True
 
     def reset_questions(self, instance):
         for child in self.grid.children:
