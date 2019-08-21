@@ -136,6 +136,8 @@ class GameOptionsScreen(Screen):
         for child in children:
             plyr = player.player(f'{child.text}')
             self.parent.game_play.teams.append(plyr)
+        
+        self.parent.game_play.number_of_teams = len(self.parent.game_play.teams)
 
     def build_question_selection_drop_down(self):
         '''
@@ -281,6 +283,11 @@ class GamePlayScreen(Screen):
             self.update_team_names()
 
     def build_score_grid(self):
+        try:
+            self.box_scores.remove_widget(self.score_grid)
+        except:
+            pass
+
         self.score_grid = GridLayout(
             cols = self.number_of_teams,
             size_hint = (1, 2/3),
@@ -305,6 +312,9 @@ class GamePlayScreen(Screen):
 
     def update_team_names(self):
         
+        self.build_score_grid()
+        self.box_scores.add_widget(self.score_grid)
+
         children = self.score_grid.children
         for i in range(len(self.team_names)):
             children[i + len(self.team_names)].text = self.team_names[i]
