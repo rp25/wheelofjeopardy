@@ -743,6 +743,7 @@ class EditQuestionScreen(Screen):
                 qbtn = QuestionAnswerButton()
                 qbtn.point_value = (question + 1) * 100
                 qbtn.text = str(qbtn.point_value)
+                qbtn.category = cat.text
                 qbtn.bind(on_press=self.show_edit_entry_popup)
                 self.grid.add_widget(qbtn)
 
@@ -803,7 +804,6 @@ class WheelofJeopardy(ScreenManager):
         else:
             self.qca = self.edit.qca_dict
         keys = list(self.qca.keys())
-        print(keys)
         key_count = 0
         q_count = 0
         for child in self.questions.grid.children:
