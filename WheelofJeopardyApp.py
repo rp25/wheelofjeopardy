@@ -231,7 +231,8 @@ class GamePlayScreen(Screen):
             size_hint = (1/2, 1/10),
             pos_hint = {'y': 0.05, 'center_x': 0.5},
             background_color = _COLOR_1,
-            on_press = self.update_free_turn_btn
+            on_press = self.update_free_turn_btn,
+            disabled = True
         )
 
         # holds the scores
@@ -321,7 +322,11 @@ class GamePlayScreen(Screen):
             children[i].text = str(self.teams[i].getScore())
         # update turn label name:
         self.turn_label.text = f"team { self.teams[self.turn ].name} spins next"
-        if self.spins > 1:
+
+        if self.spins < 1 or self.spin_result_label.text == 'bankrupt':
+            self.free_turn_button.disabled = True
+        else:
+            self.free_turn_button.disabled = False
             self.free_turn_button.text = (f"team {self.teams[self.turn-1].getName()}"
                 + f" has {self.teams[self.turn-1].getTurn()} free turns, click to use")
         
