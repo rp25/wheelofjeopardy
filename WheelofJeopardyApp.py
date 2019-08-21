@@ -548,7 +548,7 @@ class QuestionScreen(Screen):
 
     def decrease_points(self, instance):
         self.parent.game_play.update_score(
-            -self.current_question_button.point_value * self.parent.game_play.cur_round)
+            -(self.current_question_button.point_value * self.parent.game_play.cur_round))
         print(f"You lost: {self.current_question_button.point_value} points")
         self.answer_popup.dismiss()
 
