@@ -4,7 +4,7 @@ import QAL
 import player
 
 import random
-
+import copy
 import kivy
 from kivy.app import App
 from kivy.graphics import Color, Rectangle
@@ -37,7 +37,7 @@ class HomeScreen(Screen):
         super(HomeScreen, self).__init__(**kwargs)
 
         self.name = 'home'
-
+        
         self.title = Label(text='Wheel of Jeopardy!!')
         self.title.pos_hint = {'center_x': 0.5, 'top': 1}
         self.title.size_hint = (1, .20)
@@ -189,6 +189,7 @@ class GamePlayScreen(Screen):
     number_of_teams = 3
     team_names = ['team1', 'team2', 'team3']
     teams = []
+    round1Scores = []
     cur_round = 1
     spins = 0
     qca_dict = {}
@@ -315,7 +316,7 @@ class GamePlayScreen(Screen):
         
         self.build_score_grid()
         self.box_scores.add_widget(self.score_grid)
-
+        
         children = self.score_grid.children
         for i in range(len(self.team_names)):
             children[i + len(self.team_names)].text = self.team_names[i]
@@ -330,15 +331,42 @@ class GamePlayScreen(Screen):
             self.free_turn_button.text = (f"team {self.teams[self.turn-1].getName()}"
                 + f" has {self.teams[self.turn-1].getTurn()} free turns, click to use")
         
-        if self.spins > 50:
+        
+        
+        if(self.cur_round != 2 and self.spins == 50): #set back to 50
             self.cur_round = 2
             self.spins = 0
+            
+            self.round1Scores = copy.deepcopy(self.teams)
+            
+            for i in range(len(self.team_names)):
+                self.teams[i].setScore(0)
+                   
+#            for i in range(len(self.team_names)):
+#                print('check')
+#                print(self.round1Scores[i].getScore())
+                
         self.round_label.text = f'round {self.cur_round}: spin count {self.spins}'
+        #print(self.cur_round)
+        #print(self.spins)
         
-        if (self.cur_round == 2 and self.spins >= 50):
+        
+        
+        if (self.cur_round == 2 and self.spins == 50):
+            
             self.round_label.text = f'GAME FINISHED!'
             self.spin_button.disabled = True
-   
+            
+#            for i in range(len(self.team_names)):
+#                print('round1Scores')
+#                print(self.round1Scores[i].getScore())
+                
+
+            
+            for i in range(len(self.team_names)):
+                self.teams[i].setScore(self.teams[i].getScore() + self.round1Scores[i].getScore())
+                
+            
             scoreList = []
             Winners = ''
             
@@ -351,6 +379,16 @@ class GamePlayScreen(Screen):
                 
             self.turn_label.text = f"team {Winners[:-3]} won!"
                 
+
+
+
+
+
+
+
+
+
+
 
     def end_game(self):
         self.spins = 500
@@ -388,6 +426,7 @@ class GamePlayScreen(Screen):
         sector = self.gLogic.getOneSector()
         self.update_spin_result(sector)
         self.spins += 1
+        
 
         result = self.spin_result_label.text
         # check for bankrupt
