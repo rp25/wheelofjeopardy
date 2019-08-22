@@ -338,14 +338,19 @@ class GamePlayScreen(Screen):
         if (self.cur_round == 2 and self.spins >= 50):
             self.round_label.text = f'GAME FINISHED!'
             self.spin_button.disabled = True
-            winner = 0
-            winner_index = 0
+   
+            scoreList = []
+            Winners = ''
+            
             for i in range(len(self.team_names)):
-                if self.teams[i].getScore() > winner:
-                    winner = self.teams[i].getScore()
-                    winner_index = i
-                        
-            self.turn_label.text = f"team { self.teams[winner_index].name } won!"
+                scoreList.append(self.teams[i].getScore())
+                
+            for i in range(len(self.team_names)):
+                if self.teams[i].getScore() == max(scoreList):
+                   Winners += (self.teams[i].name + ' & ')
+                
+            self.turn_label.text = f"team {Winners[:-3]} won!"
+                
 
     def end_game(self):
         self.spins = 500
