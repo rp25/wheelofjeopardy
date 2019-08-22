@@ -336,14 +336,18 @@ class GamePlayScreen(Screen):
         
         if self.spins > 100:
             self.round_label.text = f'GAME FINISHED!'
+            self.spin_button.disabled = True
             winner = 0
             for i in range(len(self.team_names)):
-              if self.teams[i].getScore() > winner:
+                if self.teams[i].getScore() > winner:
                     winner = self.teams[i].getScore()
                     winner_index = i
-                       
+                        
             self.turn_label.text = f"team { self.teams[winner_index].name } won!"
-                    
+
+    def end_game(self):
+        self.spins = 500
+        self.update_team_names()
 
     def build_wheel(self):
         self.spin_result_label = Label(
@@ -466,6 +470,19 @@ class QuestionScreen(Screen):
             background_color = _COLOR_1,
             on_press = self.reset_questions
         )
+    
+    def check_if_all_qustions_answered(self):
+        
+        for child in self.grid.children:
+            if type(child) == type(Button()):
+                continue
+            if child.disabled == False:
+                return # we still have some quesitons left
+        
+        self.parent.game_play.end_game()
+
+        
+
         
     def show_question_popup(self, instance):
         self.current_question_button = instance
@@ -555,16 +572,23 @@ class QuestionScreen(Screen):
         self.answer_popup.content = self.answer_float_layout
 
     def increase_points(self, instance):
+        self.check_if_all_qustions_answered()
         self.parent.game_play.update_score(
             self.current_question_button.point_value * self.parent.game_play.cur_round)
         print(f"You earned: {self.current_question_button.point_value} points")
         self.answer_popup.dismiss()
 
+        self.parent.go_back_to_game_play(Button())
+
+
     def decrease_points(self, instance):
+        self.check_if_all_qustions_answered()
         self.parent.game_play.update_score(
             -(self.current_question_button.point_value * self.parent.game_play.cur_round))
         print(f"You lost: {self.current_question_button.point_value} points")
         self.answer_popup.dismiss()
+
+        self.parent.go_back_to_game_play(Button())
 
     def show_answer_popup(self, instance):
         self.question_popup.dismiss()
@@ -575,6 +599,7 @@ class QuestionScreen(Screen):
         self.answer_label.text = self.current_question_button.answer
         self.current_question_button.disabled = True
         self.answer_popup.open()
+
     
 
     def build_question_grid(self):
@@ -588,7 +613,7 @@ class QuestionScreen(Screen):
             cat = Button()
             cat.text = f'A category {count}'
             cat.background_color = _COLOR_1
-            cat.bold = True
+            cat.bold = True,
 
             self.grid.add_widget(cat)
             for question in range(_QUES_PER_CAT):
