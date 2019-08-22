@@ -37,3 +37,13 @@ class player:
         self.score = score
         self.setHighScore()
         
+    #Returns the total turn to validate the player's "Free Turn"
+    def getTurn(self):
+        return self.turn
+
+    #Sets turn count
+    def setTurn(self, turn):
+        self.turn += turn
+ 
+    
+        
